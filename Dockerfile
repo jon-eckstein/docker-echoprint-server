@@ -1,9 +1,14 @@
 FROM base:ubuntu-12.10
 MAINTAINER Jon Eckstein <jon.eckstein@gmail.com>
 
-# Install dependencies
+#Update
 RUN apt-get update
-RUN apt-get install -y build-essential python git zlib1g-dev libbz2-dev wget
+
+# Install dependencies
+RUN apt-get install -y build-essential python git zlib1g-dev libbz2-dev wget supervisor
+RUN mkdir -p /var/log/supervisor
+
+ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Install tokyo cabinet
 RUN wget http://sourceforge.net/projects/tokyocabinet/files/tokyocabinet/1.4.32/tokyocabinet-1.4.32.tar.gz
@@ -17,8 +22,7 @@ RUN tar xvf tokyotyrant-1.1.33.tar.gz
 RUN mkdir /usr/local/tokyotyrant-1.1.33
 RUN cd tokyotyrant-1.1.33 && ./configure --prefix=/usr/local/tokyotyrant-1.1.33/ --with-tc=/usr/local/tokyocabinet-1.4.32/ && make && make install
 
-#Execute the Tokyo suite
-RUN /usr/local/tokyotyrant-1.1.33/bin/ttserver &
+RUN cd /usr/local/tokyotyrant-1.1.33/ && ln -s /usr/local/tokyocabinet-1.4.32/lib/libtokyocabinet.so.8 lib/
 
 # Install Java 7
 RUN apt-get install software-properties-common -y
@@ -35,15 +39,8 @@ RUN apt-get install -y python-setuptools
 RUN easy_install web.py
 RUN easy_install pyechonest
 
-#Start Solr
-#RUN cd echoprint-server/solr/solr && java -jar -Dsolr.solr.home=/echoprint-server/solr/solr/solr/ -Djava.awt.headless=true start.jar 2>&1 > /dev/null &
-RUN python /echoprint-server/API/api.py 8555 &
-
 EXPOSE 8555 
 EXPOSE 8502
 
-#CMD java -Dsolr.solr.home=/echoprint-server/solr/solr/solr/ -Djava.awt.headless=true echoprint-server/solr/solr/start.jar 2>&1 > /dev/null & && sudo python echoprint-server/API/api.py 8555
-CMD cd echoprint-server/solr/solr && java -jar -Dsolr.solr.home=/echoprint-server/solr/solr/solr/ -Djava.awt.headless=true start.jar
-#CMD ["sudo","python", "echoprint-server/API/api.py", "8555"]
-#CMD sudo python /echoprint-server/API/api.py 8555
-#CMD python /echoprint-server/API/api.py 8555 & && cd echoprint-server/solr/solr && java -jar -Dsolr.solr.home=/echoprint-server/solr/solr/solr/ -Djava.awt.headless=true start.jar
+CMD ["/usr/bin/supervisord"]
+
