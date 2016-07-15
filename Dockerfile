@@ -1,4 +1,4 @@
-FROM base:ubuntu-12.10
+FROM ubuntu:12.04
 MAINTAINER Jon Eckstein <jon.eckstein@gmail.com>
 
 #Update
@@ -25,10 +25,11 @@ RUN cd tokyotyrant-1.1.33 && ./configure --prefix=/usr/local/tokyotyrant-1.1.33/
 RUN cd /usr/local/tokyotyrant-1.1.33/ && ln -s /usr/local/tokyocabinet-1.4.32/lib/libtokyocabinet.so.8 lib/
 
 # Install Java 7
+RUN apt-get install python-software-properties -y
 RUN apt-get install software-properties-common -y
 RUN apt-add-repository ppa:webupd8team/java -y
 RUN apt-get update
-RUN echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+RUN echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
 RUN apt-get install oracle-java7-installer -y
 
 #Install Echoprint server
@@ -43,4 +44,3 @@ EXPOSE 8555
 EXPOSE 8502
 
 CMD ["/usr/bin/supervisord"]
-
